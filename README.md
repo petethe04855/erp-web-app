@@ -17,7 +17,7 @@
    - ดึงโปรไฟล์ LINE User (รูป + ชื่อ) อัตโนมัติ โดยไม่ต้องกรอกรหัส PIN หรือ Username/Password
 
 3. **Standalone Web & Mobile Direct Access**:
-   - หากเปิดใช้งานนอก LINE (บนเบราว์เซอร์มือถือหรือเดสก์ท็อป) จะมีหน้าจอ **Quick PIN** (เช่น `1234`)
+   - เปิดใช้งานได้ทันทีทั้งบนเบราว์เซอร์มือถือและเดสก์ท็อป โดยไม่ต้องกรอกรหัส PIN
    - ปุ่มถ่ายภาพด่วนจากกล้องหลังมือถือ (`capture="environment"`)
    - ลากไฟล์มาวาง (Drag & Drop) หรือกด `Ctrl + V` เพื่อวางรูปภาพจาก Clipboard ได้ทันที
 
@@ -47,7 +47,6 @@ cp .env.example .env.local
 ```
 ตั้งค่าตัวแปร:
 - `NEXT_PUBLIC_API_URL`: URL ของ backend API (ค่าเริ่มต้น `http://localhost:8084/api/v1`)
-- `NEXT_PUBLIC_DEFAULT_PIN`: รหัส PIN เริ่มต้น (ค่าเริ่มต้น `1234`)
 - `NEXT_PUBLIC_LIFF_ID`: LIFF ID จาก LINE Developers Console (สำหรับโหมด LIFF)
 - `LINE_CHANNEL_ACCESS_TOKEN`: Channel Access Token ของ LINE Messaging API
 - `LINE_CHANNEL_SECRET`: Channel Secret ของ LINE Messaging API

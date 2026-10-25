@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useLiff } from "@/components/LiffProvider";
-import { PinLockScreen } from "@/components/PinLockScreen";
 import { ImageDropzone } from "@/components/ImageDropzone";
 import { ScanningState } from "@/components/ScanningState";
 import { ReceiptReviewForm } from "@/components/ReceiptReviewForm";
@@ -16,7 +15,6 @@ import {
 import { scanReceiptApi, createExpenseApi } from "@/lib/api";
 import {
   Receipt,
-  LogOut,
   AlertCircle,
   ShieldCheck,
 } from "lucide-react";
@@ -24,8 +22,7 @@ import {
 type AppStep = "idle" | "scanning" | "review" | "success";
 
 export default function ExpenseUploadPage() {
-  const { isLiffReady, isInLiff, profile } = useLiff();
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const { profile } = useLiff();
 
   // Flow State
   const [step, setStep] = useState<AppStep>("idle");
@@ -37,13 +34,6 @@ export default function ExpenseUploadPage() {
   // Loading & Error States
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // If inside LINE LIFF with active profile, automatically unlock
-  useEffect(() => {
-    if (profile?.displayName || isInLiff) {
-      setIsUnlocked(true);
-    }
-  }, [profile, isInLiff]);
 
   const activeUserName =
     profile?.displayName ? `LINE: ${profile.displayName}` : "พนักงาน (Web Direct)";
@@ -106,18 +96,6 @@ export default function ExpenseUploadPage() {
     setErrorMessage(null);
   };
 
-  // Logout / Lock
-  const handleLockApp = () => {
-    localStorage.removeItem("expense_app_unlocked");
-    setIsUnlocked(false);
-    handleUploadNext();
-  };
-
-  // Render PIN lock if not in LINE and not unlocked
-  if (isLiffReady && !isUnlocked && !profile) {
-    return <PinLockScreen onUnlock={() => setIsUnlocked(true)} />;
-  }
-
   return (
     <main className="min-h-screen bg-[#f7f7f7] text-neutral-900 flex flex-col items-center justify-start p-4 sm:p-6 relative">
       {/* Main Container */}
@@ -141,7 +119,7 @@ export default function ExpenseUploadPage() {
             </div>
           </div>
 
-          {/* User Badge / Lock Button */}
+          {/* User Badge */}
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1.5 bg-white border border-neutral-200 rounded-full px-2.5 py-1 shadow-sm">
               {profile?.pictureUrl ? (
@@ -157,17 +135,6 @@ export default function ExpenseUploadPage() {
                 {profile?.displayName || "Direct User"}
               </span>
             </div>
-
-            {!isInLiff && (
-              <button
-                type="button"
-                onClick={handleLockApp}
-                title="ล็อกหน้าจอ"
-                className="p-1.5 rounded-full bg-white hover:bg-neutral-100 border border-neutral-200 text-neutral-400 hover:text-red-500 transition-colors shadow-sm"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
         </header>
 
