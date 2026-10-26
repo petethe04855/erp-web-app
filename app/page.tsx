@@ -53,7 +53,8 @@ export default function ExpenseUploadPage() {
     } catch (err: any) {
       console.error("Scan error:", err);
       setErrorMessage(
-        err?.response?.data?.message ||
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
           err?.message ||
           "ไม่สามารถสแกนใบเสร็จได้ กรุณาลองใหม่อีกครั้ง"
       );
@@ -78,7 +79,8 @@ export default function ExpenseUploadPage() {
     } catch (err: any) {
       console.error("Save error:", err);
       setErrorMessage(
-        err?.response?.data?.message ||
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
           err?.message ||
           "บันทึกค่าใช้จ่ายไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
       );
