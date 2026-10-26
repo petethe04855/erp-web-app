@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@line/bot-sdk": "^9.2.0",
     "@line/liff": "^2.24.0",
     "axios": "^1.8.1",
     "canvas-confetti": "^1.9.4",

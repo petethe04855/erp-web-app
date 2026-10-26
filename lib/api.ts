@@ -2,7 +2,9 @@ import axios from "axios";
 import { CreateExpensePayload, ExpenseRecord, ScanResponse } from "./types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8084/api/v1";
+  process.env.NEXT_PUBLIC_EXPENSE_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8085/api/v1";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -10,17 +12,17 @@ export const apiClient = axios.create({
 });
 
 /**
- * Uploads an image file to scan receipt via Next.js internal API proxy or directly.
+ * Uploads an image file to scan receipt via erp-expense-api.
  */
 export async function scanReceiptApi(file: File): Promise<ScanResponse> {
   const formData = new FormData();
   formData.append("image", file);
 
-  const response = await axios.post<{
+  const response = await apiClient.post<{
     success: boolean;
     data: ScanResponse;
     message?: string;
-  }>("/api/scan", formData, {
+  }>("/scan", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -34,16 +36,16 @@ export async function scanReceiptApi(file: File): Promise<ScanResponse> {
 }
 
 /**
- * Creates an expense record via Next.js internal API proxy or directly.
+ * Creates an expense record via erp-expense-api.
  */
 export async function createExpenseApi(
   payload: CreateExpensePayload
 ): Promise<ExpenseRecord> {
-  const response = await axios.post<{
+  const response = await apiClient.post<{
     success: boolean;
     data: ExpenseRecord;
     message?: string;
-  }>("/api/expenses", payload);
+  }>("/expenses", payload);
 
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.message || "Failed to create expense");
