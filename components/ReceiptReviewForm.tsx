@@ -268,7 +268,10 @@ export function ReceiptReviewForm({
         <div className="flex items-center space-x-1.5 text-xs text-neutral-500 pt-1">
           <User className="w-3.5 h-3.5 text-neutral-400" />
           <span>บันทึกโดย:</span>
-          <span className="font-semibold text-neutral-800">{formData.created_by}</span>
+          <span className="font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-md flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#06C755]" />
+            <span>{formData.created_by}</span>
+          </span>
         </div>
 
         {/* Actions */}

@@ -17,12 +17,14 @@ import {
   Receipt,
   AlertCircle,
   ShieldCheck,
+  LogOut,
 } from "lucide-react";
+import { LineLoginGate } from "@/components/LineLoginGate";
 
 type AppStep = "idle" | "scanning" | "review" | "success";
 
 export default function ExpenseUploadPage() {
-  const { profile } = useLiff();
+  const { profile, logout } = useLiff();
 
   // Flow State
   const [step, setStep] = useState<AppStep>("idle");
@@ -35,8 +37,9 @@ export default function ExpenseUploadPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const activeUserName =
-    profile?.displayName ? `LINE: ${profile.displayName}` : "พนักงาน (Web Direct)";
+  const activeUserName = profile
+    ? `${profile.displayName} (LINE ID: ${profile.userId})`
+    : "พนักงาน";
 
   // 1. Handle image selected
   const handleImageSelected = async (file: File) => {
@@ -99,88 +102,105 @@ export default function ExpenseUploadPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f7f7] text-neutral-900 flex flex-col items-center justify-start p-4 sm:p-6 relative">
-      {/* Main Container */}
-      <div className="w-full max-w-md mx-auto space-y-4">
-        {/* Top App Header */}
-        <header className="flex items-center justify-between pb-3 border-b border-neutral-200">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-sm">
-              <Receipt className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <h1 className="text-sm font-bold text-neutral-900 tracking-tight">
-                  Chawy ERP · Expense
-                </h1>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+    <LineLoginGate>
+      <main className="min-h-screen bg-[#f7f7f7] text-neutral-900 flex flex-col items-center justify-start p-4 sm:p-6 relative">
+        {/* Main Container */}
+        <div className="w-full max-w-md mx-auto space-y-4">
+          {/* Top App Header */}
+          <header className="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-9 h-9 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-sm">
+                <Receipt className="w-5 h-5 text-white" />
               </div>
-              <p className="text-[11px] text-neutral-500">
-                สแกนและบันทึกใบเสร็จเข้าสู่ระบบ
-              </p>
+              <div>
+                <div className="flex items-center space-x-1.5">
+                  <h1 className="text-sm font-bold text-neutral-900 tracking-tight">
+                    Chawy ERP · Expense
+                  </h1>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                </div>
+                <p className="text-[11px] text-neutral-500">
+                  สแกนและบันทึกใบเสร็จเข้าสู่ระบบ
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* User Badge */}
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1.5 bg-white border border-neutral-200 rounded-full px-2.5 py-1 shadow-sm">
-              {profile?.pictureUrl ? (
-                <img
-                  src={profile.pictureUrl}
-                  alt={profile.displayName}
-                  className="w-4 h-4 rounded-full object-cover border border-neutral-300"
-                />
-              ) : (
-                <ShieldCheck className="w-3.5 h-3.5 text-neutral-700" />
-              )}
-              <span className="text-xs font-medium text-neutral-700 max-w-[100px] truncate">
-                {profile?.displayName || "Direct User"}
-              </span>
+            {/* Authenticated LINE User Badge */}
+            <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-2 bg-white border border-neutral-200/90 rounded-full pl-1 pr-3 py-1 shadow-sm">
+                {profile?.pictureUrl ? (
+                  <img
+                    src={profile.pictureUrl}
+                    alt={profile.displayName}
+                    className="w-6 h-6 rounded-full object-cover border border-emerald-500"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-[#06C755] flex items-center justify-center text-white text-[11px] font-bold">
+                    L
+                  </div>
+                )}
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-semibold text-neutral-800 max-w-[100px] truncate leading-tight">
+                    {profile?.displayName}
+                  </span>
+                  <span className="text-[9px] text-emerald-600 font-mono font-medium max-w-[100px] truncate">
+                    {profile?.userId}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={logout}
+                title="ออกจากระบบ LINE"
+                type="button"
+                className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-neutral-200/50 rounded-full transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Global Error Banner */}
-        {errorMessage && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start space-x-2 text-xs text-red-700 animate-in fade-in">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 font-medium">{errorMessage}</div>
-          </div>
-        )}
+          {/* Global Error Banner */}
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start space-x-2 text-xs text-red-700 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 font-medium">{errorMessage}</div>
+            </div>
+          )}
 
-        {/* Step-by-Step Flow */}
-        {step === "idle" && (
-          <div className="space-y-4">
-            <ImageDropzone onImageSelected={handleImageSelected} />
-            <SessionHistory items={sessionExpenses} />
-          </div>
-        )}
+          {/* Step-by-Step Flow */}
+          {step === "idle" && (
+            <div className="space-y-4">
+              <ImageDropzone onImageSelected={handleImageSelected} />
+              <SessionHistory items={sessionExpenses} />
+            </div>
+          )}
 
-        {step === "scanning" && (
-          <ScanningState previewUrl={localPreview} />
-        )}
+          {step === "scanning" && (
+            <ScanningState previewUrl={localPreview} />
+          )}
 
-        {step === "review" && scanResult && (
-          <ReceiptReviewForm
-            initialData={scanResult}
-            localPreviewUrl={localPreview}
-            userName={activeUserName}
-            onSubmit={handleSaveExpense}
-            onRetake={handleUploadNext}
-            isSaving={isSaving}
-          />
-        )}
-
-        {step === "success" && savedExpense && (
-          <div className="space-y-4">
-            <SuccessCard
-              expense={savedExpense}
-              onUploadNext={handleUploadNext}
+          {step === "review" && scanResult && (
+            <ReceiptReviewForm
+              initialData={scanResult}
+              localPreviewUrl={localPreview}
+              userName={activeUserName}
+              onSubmit={handleSaveExpense}
+              onRetake={handleUploadNext}
+              isSaving={isSaving}
             />
-            <SessionHistory items={sessionExpenses} />
-          </div>
-        )}
-      </div>
-    </main>
+          )}
+
+          {step === "success" && savedExpense && (
+            <div className="space-y-4">
+              <SuccessCard
+                expense={savedExpense}
+                onUploadNext={handleUploadNext}
+              />
+              <SessionHistory items={sessionExpenses} />
+            </div>
+          )}
+        </div>
+      </main>
+    </LineLoginGate>
   );
 }
