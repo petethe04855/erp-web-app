@@ -1,6 +1,7 @@
 # 🧾 Chawy ERP Expense Uploader & LIFF Web App (`erp-expense-upload`)
 
-แอปพลิเคชันเว็บแบบ Frontend-Only (Next.js 15 App Router + Tailwind CSS) สำหรับอัปโหลดและสแกนใบเสร็จ/สลิปโอนเงินเข้าสู่ระบบ Chawy ERP พร้อมเชื่อมต่อกับ **LINE LIFF** โดยทำงานร่วมกับ **`erp-expense-api`** (Go + Fiber) บนพอร์ต `8085`
+แอปพลิเคชันเว็บแบบ Frontend-Only (Next.js 15 App Router + Tailwind CSS) สำหรับอัปโหลดและสแกนใบเสร็จ/สลิปโอนเงินเข้าสู่ระบบ Chawy ERP พร้อมเชื่อมต่อกับ **LINE LIFF** โดยทำงานร่วมกับ **`erp-api-v2`** (Go + Fiber) บนพอร์ต `8084`
+
 
 ---
 
@@ -18,7 +19,7 @@
 3. **ตรวจทานก่อนบันทึก (Review & Edit Card)**:
    - แสดงภาพขนาดย่อ พร้อมโหมดดูภาพขยาย (Zoom Lightbox)
    - ปรับแก้ไขยอดเงิน (฿), วันที่, หมวดหมู่ทั้ง 7 หมวด, ช่องทาง, ร้านค้า, เลขที่คำสั่งซื้อ, และคำอธิบาย
-   - กดบันทึกลงฐานข้อมูล ERP ผ่าน `erp-expense-api` พร้อมเอฟเฟกต์ Confetti ฉลองความสำเร็จ
+   - กดบันทึกลงฐานข้อมูล ERP ผ่าน `erp-api-v2` พร้อมเอฟเฟกต์ Confetti ฉลองความสำเร็จ
 
 ---
 
@@ -39,7 +40,7 @@ npm install
 cp .env.example .env.local
 ```
 กำหนดค่าตัวแปร:
-- `NEXT_PUBLIC_EXPENSE_API_URL`: URL ของ Backend `erp-expense-api` (ค่าเริ่มต้น `http://localhost:8085/api/v1`)
+- `NEXT_PUBLIC_EXPENSE_API_URL`: URL ของ Backend `erp-api-v2` (ค่าเริ่มต้น `http://localhost:8084/api/v1`)
 - `NEXT_PUBLIC_BACKEND_HOST`: Host ของ ERP สำหรับแสดงรูปภาพ (ค่าเริ่มต้น `http://localhost:8084`)
 - `NEXT_PUBLIC_LIFF_ID`: LIFF ID จาก LINE Developers Console (สำหรับโหมดเปิดใน LINE)
 

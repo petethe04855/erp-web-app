@@ -38,15 +38,25 @@ const nextConfig: NextConfig = {
   ],
   async rewrites() {
     const expenseApiUrl =
-      process.env.INTERNAL_EXPENSE_API_URL || "http://127.0.0.1:8085/api/v1";
+      process.env.INTERNAL_ERP_API_URL ||
+      process.env.INTERNAL_EXPENSE_API_URL ||
+      "http://127.0.0.1:8084/api/v1";
     return [
+      {
+        source: "/api/expense/scan",
+        destination: `${expenseApiUrl}/public/expenses/scan-receipt`,
+      },
+      {
+        source: "/api/expense/expenses",
+        destination: `${expenseApiUrl}/public/expenses`,
+      },
       {
         source: "/api/expense/:path*",
         destination: `${expenseApiUrl}/:path*`,
       },
       {
         source: "/uploads/:path*",
-        destination: "http://127.0.0.1:8085/uploads/:path*",
+        destination: "http://127.0.0.1:8084/uploads/:path*",
       },
     ];
   },

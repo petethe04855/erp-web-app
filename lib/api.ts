@@ -27,17 +27,20 @@ export const apiClient = axios.create({
 });
 
 /**
- * Uploads an image file to scan receipt via erp-expense-api.
+ * Uploads an image file to scan receipt via erp-api-v2.
  */
 export async function scanReceiptApi(file: File): Promise<ScanResponse> {
   const formData = new FormData();
   formData.append("image", file);
 
+  const baseUrl = resolveApiBaseUrl();
+  const endpoint = baseUrl.includes("/api/expense") ? "/scan" : "/public/expenses/scan-receipt";
+
   const response = await apiClient.post<{
     success: boolean;
     data: ScanResponse;
     message?: string;
-  }>("/scan", formData, {
+  }>(endpoint, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -51,16 +54,19 @@ export async function scanReceiptApi(file: File): Promise<ScanResponse> {
 }
 
 /**
- * Creates an expense record via erp-expense-api.
+ * Creates an expense record via erp-api-v2.
  */
 export async function createExpenseApi(
   payload: CreateExpensePayload
 ): Promise<ExpenseRecord> {
+  const baseUrl = resolveApiBaseUrl();
+  const endpoint = baseUrl.includes("/api/expense") ? "/expenses" : "/public/expenses";
+
   const response = await apiClient.post<{
     success: boolean;
     data: ExpenseRecord;
     message?: string;
-  }>("/expenses", payload);
+  }>(endpoint, payload);
 
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.message || "Failed to create expense");
@@ -86,6 +92,6 @@ export function getSlipFullUrl(path?: string): string {
   }
 
   const backendHost =
-    process.env.NEXT_PUBLIC_BACKEND_HOST || "http://localhost:8085";
+    process.env.NEXT_PUBLIC_BACKEND_HOST || "http://localhost:8084";
   return `${backendHost}${cleanPath}`;
 }
