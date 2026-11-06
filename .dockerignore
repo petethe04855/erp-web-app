@@ -1,0 +1,18 @@
+# Dependencies / build output
+node_modules
+.next
+out
+coverage
+npm-debug.log*
+
+# Secrets — ห้ามเข้า image เด็ดขาด (ยกเว้น template ที่ next.config.ts อ่านจริง)
+.env
+.env.*
+.env.local
+!.env.example
+
+# Git / IDE
+.git/
+.idea/
+.vscode/
+tsconfig.tsbuildinfo

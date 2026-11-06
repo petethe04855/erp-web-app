@@ -29,6 +29,7 @@ if (activeLiffId && !process.env.NEXT_PUBLIC_LIFF_ID) {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: "standalone",
   env: {
     NEXT_PUBLIC_LIFF_ID: activeLiffId,
   },
