@@ -42,6 +42,7 @@ const nextConfig: NextConfig = {
       process.env.INTERNAL_ERP_API_URL ||
       process.env.INTERNAL_EXPENSE_API_URL ||
       "http://127.0.0.1:8084/api/v1";
+    const backendOrigin = expenseApiUrl.replace(/\/api\/v1\/?$/, "");
     return [
       {
         source: "/api/expense/scan",
@@ -57,7 +58,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/uploads/:path*",
-        destination: "http://127.0.0.1:8084/uploads/:path*",
+        destination: `${backendOrigin}/uploads/:path*`,
       },
     ];
   },

@@ -14,6 +14,8 @@ COPY --from=deps /app/node_modules ./node_modules
 # (เหมือนเดิม next.config.ts ไม่แก้ action ของ env)
 ARG NEXT_PUBLIC_LIFF_ID=""
 ENV NEXT_PUBLIC_LIFF_ID=$NEXT_PUBLIC_LIFF_ID
+ARG INTERNAL_ERP_API_URL="http://127.0.0.1:8084/api/v1"
+ENV INTERNAL_ERP_API_URL=$INTERNAL_ERP_API_URL
 COPY . .
 RUN npm run build
 
