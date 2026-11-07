@@ -42,9 +42,13 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          LIFF_ID: ${{ vars.NEXT_PUBLIC_LIFF_ID }}
+          LIFF_ID: ${{ vars.NEXT_PUBLIC_LIFF_ID || secrets.NEXT_PUBLIC_LIFF_ID }}
         run: |
           set -euo pipefail
+          if [ -z "$LIFF_ID" ]; then
+            echo "::error::Set NEXT_PUBLIC_LIFF_ID in repository variables or secrets."
+            exit 1
+          fi
           ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" true
           docker build --build-arg "INTERNAL_ERP_API_URL=http://erp-api:8084/api/v1" --build-arg "NEXT_PUBLIC_LIFF_ID=$LIFF_ID" -t "erp-expense-upload:$GITHUB_SHA" .
           docker save "erp-expense-upload:$GITHUB_SHA" | ssh -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" docker load
