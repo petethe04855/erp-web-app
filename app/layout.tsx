@@ -3,8 +3,8 @@ import "./globals.css";
 import { LiffProvider } from "@/components/LiffProvider";
 
 export const metadata = {
-  title: "ระบบอัปโหลดใบเสร็จค่าใช้จ่าย | Chawy ERP",
-  description: "อัปโหลดและสแกนใบเสร็จ/สลิปโอนเงินเข้าสู่ระบบ ERP ทันทีด้วย AI (Gemini Vision) และ LINE OA",
+  title: "ระบบลงรายรับ-รายจ่าย | Chawy ERP",
+  description: "อัปโหลดและสแกนใบเสร็จ/สลิปเข้าสู่ระบบ ERP ทันทีด้วย AI (Gemini Vision) และ LINE OA",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
