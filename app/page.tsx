@@ -1,204 +1,89 @@
 "use client";
 
-import React, { useState } from "react";
-import { useLiff } from "@/components/LiffProvider";
-import { ImageDropzone } from "@/components/ImageDropzone";
-import { ScanningState } from "@/components/ScanningState";
-import { ReceiptReviewForm } from "@/components/ReceiptReviewForm";
-import { SuccessCard } from "@/components/SuccessCard";
-import { SessionHistory } from "@/components/SessionHistory";
-import {
-  CreateExpensePayload,
-  ExpenseRecord,
-  ScanResponse,
-} from "@/lib/types";
-import { scanReceiptApi, createExpenseApi } from "@/lib/api";
-import {
-  Receipt,
-  AlertCircle,
-  ShieldCheck,
-  LogOut,
-} from "lucide-react";
+import Link from "next/link";
+import React from "react";
+import { AppHeader } from "@/components/AppHeader";
 import { LineLoginGate } from "@/components/LineLoginGate";
+import { Receipt, TrendingUp, ChevronRight } from "lucide-react";
 
-type AppStep = "idle" | "scanning" | "review" | "success";
+const entries = [
+  {
+    href: "/expense",
+    title: "ลงค่าใช้จ่าย",
+    description: "อัปโหลดรูปใบเสร็จ / สลิป สแกนและบันทึกรายการค่าใช้จ่าย",
+    icon: <Receipt className="w-6 h-6 text-white" />,
+    accent: "bg-neutral-900",
+  },
+  {
+    href: "/income",
+    title: "ลงรายรับ",
+    description: "อัปโหลดรูปสลิปการชำระเงิน บันทึกรายการรายรับ",
+    icon: <TrendingUp className="w-6 h-6 text-white" />,
+    accent: "bg-emerald-600",
+  },
+];
 
-export default function ExpenseUploadPage() {
-  const { profile, logout } = useLiff();
-
-  // Flow State
-  const [step, setStep] = useState<AppStep>("idle");
-  const [localPreview, setLocalPreview] = useState<string>("");
-  const [scanResult, setScanResult] = useState<ScanResponse | null>(null);
-  const [savedExpense, setSavedExpense] = useState<ExpenseRecord | null>(null);
-  const [sessionExpenses, setSessionExpenses] = useState<ExpenseRecord[]>([]);
-
-  // Loading & Error States
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const activeUserName = profile
-    ? `${profile.displayName} (LINE ID: ${profile.userId})`
-    : "พนักงาน";
-
-  // 1. Handle image selected
-  const handleImageSelected = async (file: File) => {
-    setErrorMessage(null);
-
-    const previewUrl = URL.createObjectURL(file);
-    setLocalPreview(previewUrl);
-    setStep("scanning");
-
-    try {
-      const result = await scanReceiptApi(file);
-      setScanResult(result);
-      setStep("review");
-    } catch (err: any) {
-      console.error("Scan error:", err);
-      setErrorMessage(
-        err?.response?.data?.error?.message ||
-          err?.response?.data?.message ||
-          err?.message ||
-          "ไม่สามารถสแกนใบเสร็จได้ กรุณาลองใหม่อีกครั้ง"
-      );
-      setStep("idle");
-    }
-  };
-
-  // 2. Handle expense submission
-  const handleSaveExpense = async (formData: CreateExpensePayload) => {
-    setIsSaving(true);
-    setErrorMessage(null);
-
-    try {
-      const created = await createExpenseApi({
-        ...formData,
-        created_by: activeUserName,
-      });
-
-      setSavedExpense(created);
-      setSessionExpenses((prev) => [created, ...prev]);
-      setStep("success");
-    } catch (err: any) {
-      console.error("Save error:", err);
-      setErrorMessage(
-        err?.response?.data?.error?.message ||
-          err?.response?.data?.message ||
-          err?.message ||
-          "บันทึกค่าใช้จ่ายไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // 3. Reset for next upload
-  const handleUploadNext = () => {
-    setStep("idle");
-    setScanResult(null);
-    setLocalPreview("");
-    setSavedExpense(null);
-    setErrorMessage(null);
-  };
-
+export default function HomePage() {
   return (
     <LineLoginGate>
       <main className="min-h-screen bg-[#f7f7f7] text-neutral-900 flex flex-col items-center justify-start p-4 sm:p-6 relative">
         {/* Main Container */}
         <div className="w-full max-w-md mx-auto space-y-4">
-          {/* Top App Header */}
-          <header className="flex items-center justify-between pb-3 border-b border-neutral-200">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-sm">
-                <Receipt className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-1.5">
-                  <h1 className="text-sm font-bold text-neutral-900 tracking-tight">
-                    Chawy ERP · Expense
-                  </h1>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                </div>
-                <p className="text-[11px] text-neutral-500">
-                  สแกนและบันทึกใบเสร็จเข้าสู่ระบบ
-                </p>
-              </div>
-            </div>
-
-            {/* Authenticated LINE User Badge */}
-            <div className="flex items-center space-x-1.5">
-              <div className="flex items-center space-x-2 bg-white border border-neutral-200/90 rounded-full pl-1 pr-3 py-1 shadow-sm">
-                {profile?.pictureUrl ? (
-                  <img
-                    src={profile.pictureUrl}
-                    alt={profile.displayName}
-                    className="w-6 h-6 rounded-full object-cover border border-emerald-500"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-[#06C755] flex items-center justify-center text-white text-[11px] font-bold">
-                    L
-                  </div>
-                )}
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-semibold text-neutral-800 max-w-[100px] truncate leading-tight">
-                    {profile?.displayName}
-                  </span>
-                  <span className="text-[9px] text-emerald-600 font-mono font-medium max-w-[100px] truncate">
-                    {profile?.userId}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={logout}
-                title="ออกจากระบบ LINE"
-                type="button"
-                className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-neutral-200/50 rounded-full transition-colors"
+          <AppHeader
+            title="Chawy ERP"
+            subtitle="เลือกประเภทรายการที่ต้องการบันทึก"
+            icon={
+              <svg
+                className="w-5 h-5 text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </header>
+                <path d="M3 3h7v7H3z" />
+                <path d="M14 3h7v7h-7z" />
+                <path d="M3 14h7v7H3z" />
+                <path d="M14 14h7v7h-7z" />
+              </svg>
+            }
+          />
 
-          {/* Global Error Banner */}
-          {errorMessage && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start space-x-2 text-xs text-red-700 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 font-medium">{errorMessage}</div>
-            </div>
-          )}
+          <p className="text-xs text-neutral-500 text-center pt-1">
+            กรุณาเลือกว่าคุณต้องการลงรายการ{" "}
+            <span className="font-semibold text-neutral-800">ค่าใช้จ่าย</span>{" "}
+            หรือ{" "}
+            <span className="font-semibold text-neutral-800">รายรับ</span>
+          </p>
 
-          {/* Step-by-Step Flow */}
-          {step === "idle" && (
-            <div className="space-y-4">
-              <ImageDropzone onImageSelected={handleImageSelected} />
-              <SessionHistory items={sessionExpenses} />
-            </div>
-          )}
-
-          {step === "scanning" && (
-            <ScanningState previewUrl={localPreview} />
-          )}
-
-          {step === "review" && scanResult && (
-            <ReceiptReviewForm
-              initialData={scanResult}
-              localPreviewUrl={localPreview}
-              userName={activeUserName}
-              onSubmit={handleSaveExpense}
-              onRetake={handleUploadNext}
-              isSaving={isSaving}
-            />
-          )}
-
-          {step === "success" && savedExpense && (
-            <div className="space-y-4">
-              <SuccessCard
-                expense={savedExpense}
-                onUploadNext={handleUploadNext}
-              />
-              <SessionHistory items={sessionExpenses} />
-            </div>
-          )}
+          {/* Entry Buttons */}
+          <div className="space-y-3">
+            {entries.map((entry) => (
+              <Link
+                key={entry.href}
+                href={entry.href}
+                className="block bg-white border border-neutral-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-neutral-300 active:scale-[0.99] transition-all"
+              >
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-sm ${entry.accent}`}
+                  >
+                    {entry.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-sm font-bold text-neutral-900 tracking-tight">
+                      {entry.title}
+                    </h2>
+                    <p className="text-[11px] text-neutral-500 leading-relaxed mt-0.5">
+                      {entry.description}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </main>
     </LineLoginGate>

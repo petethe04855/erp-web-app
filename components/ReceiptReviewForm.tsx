@@ -5,7 +5,9 @@ import {
   CreateExpensePayload,
   EXPENSE_CATEGORIES,
   EXPENSE_CHANNELS,
+  INCOME_CATEGORIES,
   ScanResponse,
+  UploadKind,
 } from "@/lib/types";
 import {
   CheckCircle2,
@@ -28,23 +30,55 @@ interface ReceiptReviewFormProps {
   initialData: ScanResponse;
   localPreviewUrl: string;
   userName?: string;
+  kind?: UploadKind;
   onSubmit: (data: CreateExpensePayload) => Promise<void>;
   onRetake: () => void;
   isSaving: boolean;
 }
 
+const REVIEW_COPY = {
+  expense: {
+    categoryLabel: "หมวดหมู่ค่าใช้จ่าย",
+    channelLabel: "ช่องทาง",
+    vendorLabel: "ร้านค้า / ผู้รับเงิน",
+    vendorPlaceholder: "เช่น ร้านค้า หรือ บริษัท",
+    productLabel: "สินค้า / รายการสิ่งของ",
+    productPlaceholder: "เช่น กล่องพัสดุ เบอร์ 2A, สก็อตเทปใส",
+    submitLabel: "ยืนยันบันทึกค่าใช้จ่าย",
+  },
+  income: {
+    categoryLabel: "หมวดหมู่รายรับ",
+    channelLabel: "ช่องทางการรับเงิน",
+    vendorLabel: "ลูกค้า / ผู้ชำระเงิน",
+    vendorPlaceholder: "เช่น ชื่อลูกค้า หรือแพลตฟอร์ม",
+    productLabel: "รายการ / คำอธิบายรายรับ",
+    productPlaceholder: "เช่น ยอดขายล็อต 15, ค่าส่งลูกค้า",
+    submitLabel: "ยืนยันบันทึกรายรับ",
+  },
+} as const;
+
 export function ReceiptReviewForm({
   initialData,
   localPreviewUrl,
   userName = "ผู้ใช้งานระบบ",
+  kind = "expense",
   onSubmit,
   onRetake,
   isSaving,
 }: ReceiptReviewFormProps) {
+  const copy = REVIEW_COPY[kind];
+  const categories = kind === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const defaultCategory = () => {
+    if (initialData.category && categories.includes(initialData.category as never)) {
+      return initialData.category;
+    }
+    return kind === "income" ? INCOME_CATEGORIES[0] : "ค่าใช้จ่ายในการบริหาร";
+  };
+
   const [formData, setFormData] = useState<CreateExpensePayload>({
     amount: initialData.amount || 0,
     date: initialData.date || new Date().toISOString().split("T")[0],
-    category: initialData.category || "ค่าใช้จ่ายในการบริหาร",
+    category: defaultCategory(),
     channel: initialData.channel || "ทั่วไป",
     vendor: initialData.vendor || "",
     invoice_ref: initialData.invoice_ref || "",
@@ -158,7 +192,7 @@ export function ReceiptReviewForm({
           <div>
             <label className="text-xs font-semibold text-neutral-700 flex items-center space-x-1.5 mb-1">
               <Tag className="w-3.5 h-3.5 text-neutral-500" />
-              <span>หมวดหมู่ค่าใช้จ่าย</span>
+              <span>{copy.categoryLabel}</span>
             </label>
             <select
               value={formData.category}
@@ -167,7 +201,7 @@ export function ReceiptReviewForm({
               }
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white"
             >
-              {EXPENSE_CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
@@ -179,7 +213,7 @@ export function ReceiptReviewForm({
           <div>
             <label className="text-xs font-semibold text-neutral-700 flex items-center space-x-1.5 mb-1">
               <Layers className="w-3.5 h-3.5 text-neutral-500" />
-              <span>ช่องทาง</span>
+              <span>{copy.channelLabel}</span>
             </label>
             <select
               value={formData.channel}
@@ -200,12 +234,12 @@ export function ReceiptReviewForm({
           <div>
             <label className="text-xs font-semibold text-neutral-700 flex items-center space-x-1.5 mb-1">
               <Store className="w-3.5 h-3.5 text-neutral-500" />
-              <span>ร้านค้า / ผู้รับเงิน</span>
+              <span>{copy.vendorLabel}</span>
             </label>
             <input
               type="text"
               value={formData.vendor}
-              placeholder="เช่น ร้านค้า หรือ บริษัท"
+              placeholder={copy.vendorPlaceholder}
               onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white"
             />
@@ -232,13 +266,13 @@ export function ReceiptReviewForm({
           <div>
             <label className="text-xs font-semibold text-neutral-700 flex items-center space-x-1.5 mb-1">
               <Package className="w-3.5 h-3.5 text-neutral-500" />
-              <span>สินค้า / รายการสิ่งของ <span className="text-red-500">*</span></span>
+              <span>{copy.productLabel} <span className="text-red-500">*</span></span>
             </label>
             <input
               type="text"
               required
               value={formData.product_name}
-              placeholder="เช่น กล่องพัสดุ เบอร์ 2A, สก็อตเทปใส"
+              placeholder={copy.productPlaceholder}
               onChange={(e) =>
                 setFormData({ ...formData, product_name: e.target.value })
               }
@@ -282,7 +316,7 @@ export function ReceiptReviewForm({
             className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-[0.99] text-white font-semibold text-sm shadow-sm flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>{isSaving ? "กำลังบันทึกข้อมูล..." : "ยืนยันบันทึกค่าใช้จ่าย"}</span>
+            <span>{isSaving ? "กำลังบันทึกข้อมูล..." : copy.submitLabel}</span>
           </button>
 
           <button

@@ -2,13 +2,15 @@
 
 import React, { useState } from "react";
 import { History, ChevronDown, ChevronUp } from "lucide-react";
-import { ExpenseRecord } from "@/lib/types";
+import { ExpenseRecord, UploadKind } from "@/lib/types";
 
 interface SessionHistoryProps {
   items: ExpenseRecord[];
+  kind?: UploadKind;
 }
 
-export function SessionHistory({ items }: SessionHistoryProps) {
+export function SessionHistory({ items, kind = "expense" }: SessionHistoryProps) {
+  const defaultTitle = kind === "income" ? "รายรับทั่วไป" : "ค่าใช้จ่ายทั่วไป";
   const [isOpen, setIsOpen] = useState(false);
 
   if (!items || items.length === 0) return null;
@@ -42,7 +44,7 @@ export function SessionHistory({ items }: SessionHistoryProps) {
             >
               <div className="space-y-0.5 truncate pr-2">
                 <div className="font-semibold text-neutral-900 truncate">
-                  {item.vendor || item.product_name || "ค่าใช้จ่ายทั่วไป"}
+                  {item.vendor || item.product_name || defaultTitle}
                 </div>
                 <div className="text-[11px] text-neutral-500 flex items-center space-x-2">
                   <span className="font-mono font-medium text-neutral-800">

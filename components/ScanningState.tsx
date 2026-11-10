@@ -5,9 +5,22 @@ import { Sparkles, Loader2 } from "lucide-react";
 
 interface ScanningStateProps {
   previewUrl: string;
+  kind?: "expense" | "income";
 }
 
-export function ScanningState({ previewUrl }: ScanningStateProps) {
+const SCANNING_COPY = {
+  expense: {
+    title: "Gemini AI กำลังวิเคราะห์ใบเสร็จ...",
+    subtitle: "ระบบกำลังอ่านยอดเงินสุทธิ, วันที่, ร้านค้า และหมวดหมู่ค่าใช้จ่าย",
+  },
+  income: {
+    title: "Gemini AI กำลังวิเคราะห์สลิปรายรับ...",
+    subtitle: "ระบบกำลังอ่านยอดเงิน, วันที่ และผู้ชำระเงิน",
+  },
+} as const;
+
+export function ScanningState({ previewUrl, kind = "expense" }: ScanningStateProps) {
+  const copy = SCANNING_COPY[kind];
   return (
     <div className="w-full bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center space-y-6">
       {/* Scanner Visual Frame */}
@@ -40,11 +53,11 @@ export function ScanningState({ previewUrl }: ScanningStateProps) {
         <div className="inline-flex items-center space-x-2 bg-neutral-100 border border-neutral-200 rounded-full px-4 py-1.5 shadow-sm">
           <Sparkles className="w-4 h-4 text-emerald-600 animate-spin" />
           <span className="text-xs font-semibold text-neutral-800">
-            Gemini AI กำลังวิเคราะห์ใบเสร็จ...
+            {copy.title}
           </span>
         </div>
         <p className="text-xs text-neutral-500 max-w-xs mx-auto">
-          ระบบกำลังอ่านยอดเงินสุทธิ, วันที่, ร้านค้า และหมวดหมู่ค่าใช้จ่าย
+          {copy.subtitle}
         </p>
       </div>
     </div>
