@@ -186,11 +186,24 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
     ["code", "state", "liffClientId", "liffRedirectUri", "error", "error_description"].forEach(
       (key) => url.searchParams.delete(key)
     );
-    const options = { redirectUri: url.toString() };
+    const target = url.toString();
+    const doLogin = (liff: any) => {
+      // LINE rejects a redirectUri that is not under the LIFF Endpoint URL.
+      // e.g. Endpoint = https://x/expense cannot return to https://x/income.
+      const endpointUrl: string | undefined = liff.getContext?.()?.endpointUrl;
+      const underEndpoint = !endpointUrl || target.startsWith(endpointUrl.replace(/\/$/, ""));
+      if (!underEndpoint) {
+        console.warn(
+          `[LIFF] ${target} is not under Endpoint URL ${endpointUrl}. ` +
+            "Set the LIFF Endpoint URL to the site root so /expense and /income both work."
+        );
+      }
+      liff.login(underEndpoint ? { redirectUri: target } : undefined);
+    };
     if (liffInstance) {
-      liffInstance.login(options);
+      doLogin(liffInstance);
     } else {
-      import("@line/liff").then((m) => m.default.login(options));
+      import("@line/liff").then((m) => doLogin(m.default));
     }
   }, [liffInstance]);
 
