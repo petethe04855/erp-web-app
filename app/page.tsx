@@ -22,9 +22,14 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!isLiffReady) return;
-    // LIFF SDK performs its own redirect for `liff.state` deep links.
-    if (new URLSearchParams(window.location.search).has("liff.state")) return;
-    router.replace("/expense");
+    // Rich menu deep links (https://liff.line.me/<id>/income) arrive here as
+    // `/?liff.state=/income`. liff.init() normally redirects by itself and never
+    // resolves, but when it is skipped (dev bypass profile in localStorage) or
+    // fails, we must honour liff.state ourselves instead of forcing /expense.
+    const state = new URLSearchParams(window.location.search).get("liff.state");
+    const target =
+      state && state.startsWith("/") && !state.startsWith("//") ? state : "/expense";
+    router.replace(target);
   }, [isLiffReady, router]);
 
   return (
