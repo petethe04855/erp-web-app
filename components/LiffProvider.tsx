@@ -180,10 +180,17 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(() => {
+    // Return to the page the user is on (e.g. /expense) instead of the LIFF
+    // endpoint root, stripping leftover OAuth params from a previous attempt.
+    const url = new URL(window.location.href);
+    ["code", "state", "liffClientId", "liffRedirectUri", "error", "error_description"].forEach(
+      (key) => url.searchParams.delete(key)
+    );
+    const options = { redirectUri: url.toString() };
     if (liffInstance) {
-      liffInstance.login();
+      liffInstance.login(options);
     } else {
-      import("@line/liff").then((m) => m.default.login());
+      import("@line/liff").then((m) => m.default.login(options));
     }
   }, [liffInstance]);
 
