@@ -31,5 +31,6 @@ export async function GET() {
 
   return NextResponse.json({
     liffId: liffId || "",
+    liffIdIncome: process.env.NEXT_PUBLIC_LIFF_ID_INCOME || "",
   });
 }
