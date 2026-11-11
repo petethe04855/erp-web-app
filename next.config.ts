@@ -32,6 +32,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   env: {
     NEXT_PUBLIC_LIFF_ID: activeLiffId,
+    // Separate LIFF app for the /income rich-menu entry (falls back to NEXT_PUBLIC_LIFF_ID).
+    NEXT_PUBLIC_LIFF_ID_INCOME: process.env.NEXT_PUBLIC_LIFF_ID_INCOME || "",
   },
   allowedDevOrigins: [
     "pages-dsl-limits-additional.trycloudflare.com",
