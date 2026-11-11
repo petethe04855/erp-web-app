@@ -5,6 +5,19 @@ import { LineUserProfile } from "@/lib/types";
 
 const DEV_USER_KEY = "erp_dev_line_profile";
 
+/**
+ * Each LINE rich-menu entry can be its own LIFF app. liff.init() throws
+ * "Invalid LIFF ID" when the LIFF app that opened the page differs from the
+ * ID passed in, so pick the ID from the page being opened:
+ *   /income (or `/?liff.state=/income`) -> NEXT_PUBLIC_LIFF_ID_INCOME
+ *   everything else                     -> NEXT_PUBLIC_LIFF_ID
+ */
+function isIncomePath(): boolean {
+  const { pathname, search } = window.location;
+  const state = new URLSearchParams(search).get("liff.state") || "";
+  return pathname.startsWith("/income") || state.startsWith("/income");
+}
+
 interface LiffContextType {
   isLiffReady: boolean;
   isInLiff: boolean;
@@ -133,19 +146,24 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
     };
 
     const start = async () => {
-      let resolvedId = process.env.NEXT_PUBLIC_LIFF_ID || "";
+      const income = isIncomePath();
+      const incomeId = process.env.NEXT_PUBLIC_LIFF_ID_INCOME || "";
+      let resolvedId = (income && incomeId) || process.env.NEXT_PUBLIC_LIFF_ID || "";
       const isPlaceholder =
         !resolvedId ||
         resolvedId.trim() === "" ||
         resolvedId.includes("your-liff-id") ||
         resolvedId.includes("XXXXXXXX");
 
-      if (isPlaceholder) {
+      // Runtime fallback when the ID was not inlined at build time.
+      if (isPlaceholder || (income && !incomeId)) {
         try {
           const res = await fetch("/api/config");
           if (res.ok) {
             const data = await res.json();
-            if (data?.liffId) {
+            if (income && data?.liffIdIncome) {
+              resolvedId = data.liffIdIncome;
+            } else if (isPlaceholder && data?.liffId) {
               resolvedId = data.liffId;
             }
           }
