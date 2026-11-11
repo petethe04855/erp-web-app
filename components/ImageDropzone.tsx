@@ -6,9 +6,22 @@ import { Camera, Image as ImageIcon, UploadCloud, Clipboard, Sparkles } from "lu
 interface ImageDropzoneProps {
   onImageSelected: (file: File) => void;
   disabled?: boolean;
+  kind?: "expense" | "income";
 }
 
-export function ImageDropzone({ onImageSelected, disabled = false }: ImageDropzoneProps) {
+const DROPZONE_COPY = {
+  expense: {
+    title: "ถ่ายภาพสลิปทันที",
+    subtitle: "เปิดกล้องถ่ายใบเสร็จ / สลิปโอนเงิน เพื่อสแกนด้วย AI",
+  },
+  income: {
+    title: "ถ่ายภาพสลิปรายรับทันที",
+    subtitle: "เปิดกล้องถ่ายสลิปการชำระเงิน (รายรับ) เพื่อสแกนด้วย AI",
+  },
+} as const;
+
+export function ImageDropzone({ onImageSelected, disabled = false, kind = "expense" }: ImageDropzoneProps) {
+  const copy = DROPZONE_COPY[kind];
   const [isDragging, setIsDragging] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -99,12 +112,10 @@ export function ImageDropzone({ onImageSelected, disabled = false }: ImageDropzo
         </div>
         <div className="text-center">
           <div className="text-base font-bold tracking-wide flex items-center justify-center space-x-1.5">
-            <span>ถ่ายภาพสลิปทันที</span>
+            <span>{copy.title}</span>
             <Sparkles className="w-4 h-4 text-emerald-400" />
           </div>
-          <p className="text-xs text-neutral-400 mt-0.5">
-            เปิดกล้องถ่ายใบเสร็จ / สลิปโอนเงิน เพื่อสแกนด้วย AI
-          </p>
+          <p className="text-xs text-neutral-400 mt-0.5">{copy.subtitle}</p>
         </div>
       </button>
 

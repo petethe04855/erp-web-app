@@ -9,6 +9,8 @@ export type ExpenseCategory =
 
 export type ExpenseChannel = "LINE" | "Shopee" | "TikTok" | "Manual" | "ทั่วไป";
 
+export type UploadKind = "expense" | "income";
+
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "ค่าโฆษณา",
   "ค่าธรรมเนียมแพลตฟอร์ม",
@@ -79,3 +81,28 @@ export interface CreateExpensePayload {
   description?: string;
   created_by?: string;
 }
+
+// ---------- Income ----------
+
+export type IncomeCategory =
+  | "ยอดขาย LINE"
+  | "ยอดขาย Shopee"
+  | "ยอดขาย TikTok"
+  | "ยอดขายหน้าร้าน"
+  | "ค่าธรรมเนียมการชำระเงิน"
+  | "รายได้อื่นๆ";
+
+export const INCOME_CATEGORIES: IncomeCategory[] = [
+  "ยอดขาย LINE",
+  "ยอดขาย Shopee",
+  "ยอดขาย TikTok",
+  "ยอดขายหน้าร้าน",
+  "ค่าธรรมเนียมการชำระเงิน",
+  "รายได้อื่นๆ",
+];
+
+// Income records share the same data shape as expenses
+// (code prefix INC-, but identical fields from erp-expense-api)
+export type IncomeRecord = ExpenseRecord;
+
+export type CreateIncomePayload = CreateExpensePayload;
