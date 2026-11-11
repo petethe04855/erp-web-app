@@ -3,14 +3,29 @@
 import React, { useEffect } from "react";
 import { CheckCircle, Camera, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
-import { ExpenseRecord } from "@/lib/types";
+import { ExpenseRecord, UploadKind } from "@/lib/types";
+
+const SUCCESS_COPY = {
+  expense: {
+    title: "บันทึกค่าใช้จ่ายสำเร็จ!",
+    vendorLabel: "ร้านค้า / ผู้รับเงิน",
+    nextLabel: "ถ่าย / อัปโหลดใบเสร็จใบต่อไป",
+  },
+  income: {
+    title: "บันทึกรายรับสำเร็จ!",
+    vendorLabel: "ลูกค้า / ผู้ชำระเงิน",
+    nextLabel: "ถ่าย / อัปโหลดสลิปรายรับใบต่อไป",
+  },
+} as const;
 
 interface SuccessCardProps {
   expense: ExpenseRecord;
   onUploadNext: () => void;
+  kind?: UploadKind;
 }
 
-export function SuccessCard({ expense, onUploadNext }: SuccessCardProps) {
+export function SuccessCard({ expense, onUploadNext, kind = "expense" }: SuccessCardProps) {
+  const copy = SUCCESS_COPY[kind];
   useEffect(() => {
     try {
       confetti({
@@ -38,7 +53,7 @@ export function SuccessCard({ expense, onUploadNext }: SuccessCardProps) {
         </div>
 
         <h2 className="text-lg font-bold text-neutral-900 mt-3">
-          บันทึกค่าใช้จ่ายสำเร็จ!
+          {copy.title}
         </h2>
         <p className="text-xs text-neutral-500 mt-0.5">
           ข้อมูลได้ถูกจัดเก็บเข้าสู่ระบบ Chawy ERP เรียบร้อยแล้ว
@@ -70,7 +85,7 @@ export function SuccessCard({ expense, onUploadNext }: SuccessCardProps) {
 
         {expense.vendor && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-500">ร้านค้า / ผู้รับเงิน</span>
+            <span className="text-xs text-neutral-500">{copy.vendorLabel}</span>
             <span className="text-xs font-medium text-neutral-800 truncate max-w-[180px]">
               {expense.vendor}
             </span>
@@ -91,7 +106,7 @@ export function SuccessCard({ expense, onUploadNext }: SuccessCardProps) {
           className="w-full py-3.5 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-[0.99] text-white font-bold text-sm shadow-sm flex items-center justify-center space-x-2 transition-all"
         >
           <Camera className="w-4 h-4" />
-          <span>ถ่าย / อัปโหลดใบเสร็จใบต่อไป</span>
+          <span>{copy.nextLabel}</span>
           <ArrowRight className="w-4 h-4 ml-1" />
         </button>
       </div>

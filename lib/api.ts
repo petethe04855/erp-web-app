@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CreateExpensePayload, ExpenseRecord, ScanResponse } from "./types";
+import { CreateExpensePayload, CreateIncomePayload, ExpenseRecord, IncomeRecord, ScanResponse } from "./types";
 
 // Determine base API URL:
 // 1. Explicit NEXT_PUBLIC_EXPENSE_API_URL if configured
@@ -70,6 +70,55 @@ export async function createExpenseApi(
 
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.message || "Failed to create expense");
+  }
+
+  return response.data.data;
+}
+
+/**
+ * Uploads an image file to scan an income slip via erp-expense-api.
+ */
+export async function scanIncomeSlipApi(file: File): Promise<ScanResponse> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const baseUrl = resolveApiBaseUrl();
+  const endpoint = baseUrl.includes("/api/expense") ? "/api/income/scan-slip" : "/incomes/scan-slip";
+
+  const response = await apiClient.post<{
+    success: boolean;
+    data: ScanResponse;
+    message?: string;
+  }>(endpoint, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(response.data.message || "Failed to scan income slip");
+  }
+
+  return response.data.data;
+}
+
+/**
+ * Creates an income record via erp-expense-api.
+ */
+export async function createIncomeApi(
+  payload: CreateIncomePayload
+): Promise<IncomeRecord> {
+  const baseUrl = resolveApiBaseUrl();
+  const endpoint = baseUrl.includes("/api/expense") ? "/api/income/incomes" : "/incomes";
+
+  const response = await apiClient.post<{
+    success: boolean;
+    data: IncomeRecord;
+    message?: string;
+  }>(endpoint, payload);
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(response.data.message || "Failed to create income");
   }
 
   return response.data.data;
