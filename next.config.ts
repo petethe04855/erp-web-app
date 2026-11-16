@@ -56,11 +56,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/api/income/scan-slip",
-        destination: `${expenseApiUrl}/incomes/scan-slip`,
+        destination: `${expenseApiUrl}/public/incomes/scan-slip`,
       },
       {
         source: "/api/income/incomes",
-        destination: `${expenseApiUrl}/incomes`,
+        destination: `${expenseApiUrl}/public/incomes`,
       },
       {
         source: "/api/expense/:path*",

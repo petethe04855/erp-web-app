@@ -27,6 +27,22 @@ export const apiClient = axios.create({
 });
 
 /**
+ * Income endpoints live under the backend `/public/incomes` path. In
+ * same-origin proxy mode they go through the dedicated `/api/income` Next
+ * rewrites, so they must NOT be sent through apiClient (whose baseURL is
+ * "/api/expense" and would nest the path, e.g. /api/expense/api/income/...).
+ *
+ * proxyPath is the Next rewrite source suffix (`scan-slip`, `incomes`);
+ * apiPath is the backend suffix under /public/incomes ("" for the collection).
+ */
+function incomeEndpoint(proxyPath: string, apiPath: string): string {
+  const baseUrl = resolveApiBaseUrl();
+  return baseUrl.includes("/api/expense")
+    ? `/api/income/${proxyPath}`
+    : `${baseUrl}/public/incomes${apiPath}`;
+}
+
+/**
  * Uploads an image file to scan receipt via erp-api-v2.
  */
 export async function scanReceiptApi(file: File): Promise<ScanResponse> {
@@ -76,20 +92,18 @@ export async function createExpenseApi(
 }
 
 /**
- * Uploads an image file to scan an income slip via erp-expense-api.
+ * Uploads an image file to scan an income slip via erp-api-v2.
  */
 export async function scanIncomeSlipApi(file: File): Promise<ScanResponse> {
   const formData = new FormData();
   formData.append("image", file);
 
-  const baseUrl = resolveApiBaseUrl();
-  const endpoint = baseUrl.includes("/api/expense") ? "/api/income/scan-slip" : "/incomes/scan-slip";
-
-  const response = await apiClient.post<{
+  const response = await axios.post<{
     success: boolean;
     data: ScanResponse;
     message?: string;
-  }>(endpoint, formData, {
+  }>(incomeEndpoint("scan-slip", "/scan-slip"), formData, {
+    timeout: 90000,
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -103,19 +117,16 @@ export async function scanIncomeSlipApi(file: File): Promise<ScanResponse> {
 }
 
 /**
- * Creates an income record via erp-expense-api.
+ * Creates an income record via erp-api-v2.
  */
 export async function createIncomeApi(
   payload: CreateIncomePayload
 ): Promise<IncomeRecord> {
-  const baseUrl = resolveApiBaseUrl();
-  const endpoint = baseUrl.includes("/api/expense") ? "/api/income/incomes" : "/incomes";
-
-  const response = await apiClient.post<{
+  const response = await axios.post<{
     success: boolean;
     data: IncomeRecord;
     message?: string;
-  }>(endpoint, payload);
+  }>(incomeEndpoint("incomes", ""), payload, { timeout: 60000 });
 
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.message || "Failed to create income");
