@@ -9,6 +9,9 @@ import {
   ScanResponse,
   UploadKind,
 } from "@/lib/types";
+import { buildInitialPayload } from "@/lib/payload";
+import { isPdfUrl } from "@/lib/files";
+import { SlipPreview } from "./SlipPreview";
 import {
   CheckCircle2,
   RotateCcw,
@@ -29,6 +32,17 @@ import { getSlipFullUrl } from "@/lib/api";
 interface ReceiptReviewFormProps {
   initialData: ScanResponse;
   localPreviewUrl: string;
+  /** The local file is a PDF (shown as a document, opened in a viewer). */
+  isPdf?: boolean;
+  fileName?: string;
+  /** Unsaved edits to start from (e.g. coming back to this card). */
+  draft?: CreateExpensePayload;
+  /** Reports every edit, so "save all" can use what the user changed. */
+  onChange?: (data: CreateExpensePayload) => void;
+  /** Label of the secondary button (default "ถ่ายใหม่"). */
+  secondaryLabel?: string;
+  /** Save error shown above the actions. */
+  error?: string;
   userName?: string;
   kind?: UploadKind;
   onSubmit: (data: CreateExpensePayload) => Promise<void>;
@@ -60,6 +74,12 @@ const REVIEW_COPY = {
 export function ReceiptReviewForm({
   initialData,
   localPreviewUrl,
+  isPdf,
+  fileName,
+  draft,
+  onChange,
+  secondaryLabel = "ถ่ายใหม่",
+  error,
   userName = "ผู้ใช้งานระบบ",
   kind = "expense",
   onSubmit,
@@ -68,28 +88,17 @@ export function ReceiptReviewForm({
 }: ReceiptReviewFormProps) {
   const copy = REVIEW_COPY[kind];
   const categories = kind === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-  const defaultCategory = () => {
-    if (initialData.category && categories.includes(initialData.category as never)) {
-      return initialData.category;
-    }
-    return kind === "income" ? INCOME_CATEGORIES[0] : "ค่าใช้จ่ายในการบริหาร";
+  const [formData, setFormDataState] = useState<CreateExpensePayload>(
+    () => draft ?? buildInitialPayload(initialData, kind, userName),
+  );
+  const setFormData = (next: CreateExpensePayload) => {
+    setFormDataState(next);
+    onChange?.(next);
   };
-
-  const [formData, setFormData] = useState<CreateExpensePayload>({
-    amount: initialData.amount || 0,
-    date: initialData.date || new Date().toISOString().split("T")[0],
-    category: defaultCategory(),
-    channel: initialData.channel || "ทั่วไป",
-    vendor: initialData.vendor || "",
-    invoice_ref: initialData.invoice_ref || "",
-    product_name: initialData.product_name || "",
-    description: initialData.description || "",
-    slip_url: initialData.slip_url || "",
-    created_by: userName,
-  });
 
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const slipDisplayUrl = localPreviewUrl || getSlipFullUrl(initialData.slip_url);
+  const slipIsPdf = isPdf ?? isPdfUrl(initialData.slip_url);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,20 +120,26 @@ export function ReceiptReviewForm({
           >
             <X className="w-6 h-6" />
           </button>
-          <img
-            src={slipDisplayUrl}
-            alt="Receipt Zoom"
-            className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
-          />
+          <div onClick={(e) => slipIsPdf && e.stopPropagation()} className="contents">
+            <SlipPreview
+              url={slipDisplayUrl}
+              isPdf={slipIsPdf}
+              variant="contain"
+              alt="Receipt Zoom"
+              fileName={fileName}
+            />
+          </div>
         </div>
       )}
 
       {/* Slip Thumbnail Banner & Zoom Trigger */}
       <div className="relative w-full h-32 rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200 group shadow-sm">
-        <img
-          src={slipDisplayUrl}
+        <SlipPreview
+          url={slipDisplayUrl}
+          isPdf={slipIsPdf}
           alt="Receipt Thumbnail"
-          className="w-full h-full object-cover filter brightness-95 group-hover:scale-105 transition-transform duration-300"
+          fileName={fileName}
+          className="filter brightness-95 group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
@@ -144,7 +159,7 @@ export function ReceiptReviewForm({
             className="flex items-center space-x-1 text-xs text-white bg-black/50 hover:bg-black/70 px-2.5 py-1 rounded-lg backdrop-blur-md transition-colors"
           >
             <ZoomIn className="w-3.5 h-3.5" />
-            <span>ดูภาพขยาย</span>
+            <span>{slipIsPdf ? "เปิดดู PDF" : "ดูภาพขยาย"}</span>
           </button>
         </div>
       </div>
@@ -308,6 +323,12 @@ export function ReceiptReviewForm({
           </span>
         </div>
 
+        {error && (
+          <div role="alert" className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">
+            บันทึกไม่สำเร็จ: {error}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
           <button
@@ -326,7 +347,7 @@ export function ReceiptReviewForm({
             className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-neutral-50 border border-neutral-300 text-neutral-700 font-medium text-sm flex items-center justify-center space-x-1.5 transition-all shadow-sm"
           >
             <RotateCcw className="w-3.5 h-3.5 text-neutral-500" />
-            <span>ถ่ายใหม่</span>
+            <span>{secondaryLabel}</span>
           </button>
         </div>
       </div>
