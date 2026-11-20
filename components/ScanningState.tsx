@@ -2,9 +2,12 @@
 
 import React from "react";
 import { Sparkles, Loader2 } from "lucide-react";
+import { SlipPreview } from "./SlipPreview";
 
 interface ScanningStateProps {
   previewUrl: string;
+  isPdf?: boolean;
+  fileName?: string;
   kind?: "expense" | "income";
 }
 
@@ -19,7 +22,7 @@ const SCANNING_COPY = {
   },
 } as const;
 
-export function ScanningState({ previewUrl, kind = "expense" }: ScanningStateProps) {
+export function ScanningState({ previewUrl, isPdf = false, fileName, kind = "expense" }: ScanningStateProps) {
   const copy = SCANNING_COPY[kind];
   return (
     <div className="w-full bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center space-y-6">
@@ -27,10 +30,12 @@ export function ScanningState({ previewUrl, kind = "expense" }: ScanningStatePro
       <div className="relative w-64 h-80 rounded-2xl overflow-hidden border border-neutral-300 shadow-md bg-neutral-900">
         {/* Receipt Image Preview */}
         {previewUrl ? (
-          <img
-            src={previewUrl}
+          <SlipPreview
+            url={previewUrl}
+            isPdf={isPdf}
             alt="Receipt Scanning"
-            className="w-full h-full object-cover filter brightness-90 contrast-105"
+            fileName={fileName}
+            className="filter brightness-90 contrast-105"
           />
         ) : (
           <div className="w-full h-full bg-neutral-900 flex items-center justify-center">

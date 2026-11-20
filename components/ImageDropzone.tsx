@@ -1,10 +1,22 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Camera, Image as ImageIcon, UploadCloud, Clipboard, Sparkles } from "lucide-react";
+import {
+  Camera,
+  Image as ImageIcon,
+  UploadCloud,
+  Clipboard,
+  Sparkles,
+  FileText,
+  AlertCircle,
+} from "lucide-react";
+import { partitionFiles, UPLOAD_ACCEPT } from "@/lib/files";
 
 interface ImageDropzoneProps {
-  onImageSelected: (file: File) => void;
+  /** Valid files (images or PDF, ≤10 MB); invalid ones are listed in the dropzone. */
+  onFilesSelected: (files: File[]) => void;
+  /** Receives the rejected files ("name: reason"); the parent shows them. */
+  onRejected?: (messages: string[]) => void;
   disabled?: boolean;
   kind?: "expense" | "income";
 }
@@ -20,41 +32,57 @@ const DROPZONE_COPY = {
   },
 } as const;
 
-export function ImageDropzone({ onImageSelected, disabled = false, kind = "expense" }: ImageDropzoneProps) {
+export function ImageDropzone({
+  onFilesSelected,
+  onRejected,
+  disabled = false,
+  kind = "expense",
+}: ImageDropzoneProps) {
   const copy = DROPZONE_COPY[kind];
   const [isDragging, setIsDragging] = useState(false);
+  const [rejected, setRejected] = useState<string[]>([]);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onImageSelected(file);
-      e.target.value = "";
-    }
+  const takeFiles = (files: File[]) => {
+    if (files.length === 0) return;
+    const { accepted, rejected: bad } = partitionFiles(files);
+    if (onRejected) onRejected(bad);
+    else setRejected(bad);
+    if (accepted.length) onFilesSelected(accepted);
   };
 
-  // Clipboard paste listener
+  // Latest takeFiles for the window paste listener
+  const takeFilesRef = useRef(takeFiles);
+  useEffect(() => {
+    takeFilesRef.current = takeFiles;
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    takeFiles(Array.from(e.target.files ?? []));
+    e.target.value = "";
+  };
+
+  // Clipboard paste listener (Ctrl+V): takes every pasted file
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       if (disabled) return;
       const items = e.clipboardData?.items;
       if (!items) return;
 
+      const files: File[] = [];
       for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith("image/")) {
+        if (items[i].kind === "file") {
           const file = items[i].getAsFile();
-          if (file) {
-            onImageSelected(file);
-            break;
-          }
+          if (file) files.push(file);
         }
       }
+      takeFilesRef.current(files);
     };
 
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, [disabled, onImageSelected]);
+  }, [disabled]);
 
   // Drag and drop handlers
   const handleDragOver = (e: React.DragEvent) => {
@@ -71,11 +99,7 @@ export function ImageDropzone({ onImageSelected, disabled = false, kind = "expen
     e.preventDefault();
     setIsDragging(false);
     if (disabled) return;
-
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      onImageSelected(file);
-    }
+    takeFiles(Array.from(e.dataTransfer.files ?? []));
   };
 
   return (
@@ -94,7 +118,8 @@ export function ImageDropzone({ onImageSelected, disabled = false, kind = "expen
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/png,image/jpeg,image/jpg,image/webp"
+        accept={UPLOAD_ACCEPT}
+        multiple
         className="hidden"
         onChange={handleFileChange}
         disabled={disabled}
@@ -124,7 +149,7 @@ export function ImageDropzone({ onImageSelected, disabled = false, kind = "expen
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={() => galleryInputRef.current?.click()}
+        onClick={() => !disabled && galleryInputRef.current?.click()}
         className={`w-full rounded-2xl border-2 border-dashed p-6 transition-all cursor-pointer flex flex-col items-center justify-center text-center space-y-2.5 bg-white ${
           isDragging
             ? "border-neutral-900 bg-neutral-50 scale-[1.01]"
@@ -134,6 +159,9 @@ export function ImageDropzone({ onImageSelected, disabled = false, kind = "expen
         <div className="flex items-center space-x-2.5 text-neutral-500">
           <div className="p-2 rounded-xl bg-neutral-100 border border-neutral-200">
             <ImageIcon className="w-4 h-4 text-neutral-700" />
+          </div>
+          <div className="p-2 rounded-xl bg-neutral-100 border border-neutral-200">
+            <FileText className="w-4 h-4 text-neutral-700" />
           </div>
           <div className="p-2 rounded-xl bg-neutral-100 border border-neutral-200 hidden sm:flex">
             <UploadCloud className="w-4 h-4 text-neutral-700" />
@@ -145,13 +173,28 @@ export function ImageDropzone({ onImageSelected, disabled = false, kind = "expen
 
         <div>
           <p className="text-sm font-semibold text-neutral-800">
-            เลือกรูปภาพจากคลัง หรือลากไฟล์มาวาง
+            เลือกไฟล์จากคลัง หรือลากไฟล์มาวาง
           </p>
           <p className="text-xs text-neutral-500 mt-0.5">
-            รองรับ JPG, PNG, WebP (หรือกด Ctrl+V เพื่อวางรูปภาพได้ทันที)
+            รองรับ JPG, PNG, WebP, PDF · เลือกได้หลายไฟล์ (ไม่เกิน 10 MB ต่อไฟล์ หรือกด Ctrl+V เพื่อวางรูป)
           </p>
         </div>
       </div>
+
+      {rejected.length > 0 && (
+        <div
+          role="alert"
+          className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start space-x-2 text-xs text-amber-800"
+        >
+          <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-0.5">
+            <div className="font-semibold">ไม่ได้เพิ่มไฟล์ต่อไปนี้</div>
+            {rejected.map((r) => (
+              <div key={r}>{r}</div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

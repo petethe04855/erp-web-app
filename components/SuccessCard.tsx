@@ -22,9 +22,11 @@ interface SuccessCardProps {
   expense: ExpenseRecord;
   onUploadNext: () => void;
   kind?: UploadKind;
+  /** How many records this upload saved (shown when more than one). */
+  count?: number;
 }
 
-export function SuccessCard({ expense, onUploadNext, kind = "expense" }: SuccessCardProps) {
+export function SuccessCard({ expense, onUploadNext, kind = "expense", count = 1 }: SuccessCardProps) {
   const copy = SUCCESS_COPY[kind];
   useEffect(() => {
     try {
@@ -55,12 +57,15 @@ export function SuccessCard({ expense, onUploadNext, kind = "expense" }: Success
         <h2 className="text-lg font-bold text-neutral-900 mt-3">
           {copy.title}
         </h2>
+        {count > 1 && (
+          <p className="text-sm font-semibold text-emerald-700 mt-1">บันทึกแล้ว {count} รายการ</p>
+        )}
         <p className="text-xs text-neutral-500 mt-0.5">
           ข้อมูลได้ถูกจัดเก็บเข้าสู่ระบบ Chawy ERP เรียบร้อยแล้ว
         </p>
       </div>
 
-      {/* Summary Card */}
+      {/* Summary Card (latest saved record) */}
       <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-4 text-left space-y-2">
         <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
           <span className="text-xs text-neutral-500">รหัสเอกสาร</span>

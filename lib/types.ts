@@ -106,3 +106,27 @@ export const INCOME_CATEGORIES: IncomeCategory[] = [
 export type IncomeRecord = ExpenseRecord;
 
 export type CreateIncomePayload = CreateExpensePayload;
+
+// ---------- Multi-file upload queue ----------
+
+export type UploadStatus =
+  | "queued" // waiting to be scanned
+  | "scanning"
+  | "review" // scanned, waiting for the user to check and save
+  | "saving"
+  | "saved"
+  | "error"; // scan failed (retry re-scans)
+
+export interface UploadItem {
+  id: string;
+  file: File;
+  /** Object URL of the local file (images and PDFs). */
+  previewUrl: string;
+  isPdf: boolean;
+  status: UploadStatus;
+  scan?: ScanResponse;
+  /** Edits made in the review card that are not saved yet. */
+  draft?: CreateExpensePayload;
+  record?: ExpenseRecord;
+  error?: string;
+}

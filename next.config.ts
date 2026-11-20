@@ -30,6 +30,14 @@ if (activeLiffId && !process.env.NEXT_PUBLIC_LIFF_ID) {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  experimental: {
+    // The /api/* rewrites proxy to erp-api-v2, whose Gemini scan may take up
+    // to 90s (multi-page PDFs are slower); Next's default proxy timeout is 30s.
+    proxyTimeout: 120_000,
+    // Files may be up to 10 MB; leave room for the multipart overhead
+    // (Next's default proxy body limit is exactly 10 MB).
+    proxyClientMaxBodySize: 12 * 1024 * 1024,
+  },
   env: {
     NEXT_PUBLIC_LIFF_ID: activeLiffId,
     // Separate LIFF app for the /income rich-menu entry (falls back to NEXT_PUBLIC_LIFF_ID).
