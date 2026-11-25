@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { AlertCircle, X } from "lucide-react";
 import { ImageDropzone } from "./ImageDropzone";
+import { AddMoreFiles } from "./AddMoreFiles";
 import { ScanningState } from "./ScanningState";
 import { ReceiptReviewForm } from "./ReceiptReviewForm";
 import { SuccessCard } from "./SuccessCard";
@@ -111,6 +112,20 @@ export function UploadFlow({ kind, userName, scanFn, createFn }: UploadFlowProps
     </div>
   );
 
+  // Picking more files while the only file is scanning or in review: queue them
+  // and show the list of files (the multi-file flow). Some pickers, such as the
+  // LINE in-app browser, return one file per pick even with `multiple`.
+  const addMore = (
+    <AddMoreFiles
+      onFilesSelected={(files) => {
+        queue.addFiles(files);
+        setSelectedId(null);
+      }}
+      onRejected={setRejected}
+      disabled={queue.isSavingAll}
+    />
+  );
+
   return (
     <div className="space-y-4">
       {rejectedNote}
@@ -121,7 +136,7 @@ export function UploadFlow({ kind, userName, scanFn, createFn }: UploadFlowProps
   function renderView() {
     // 1. Reviewing one file
     if (selected && selected.scan) {
-      return (
+      const form = (
         <ReceiptReviewForm
           key={selected.id}
           kind={kind}
@@ -145,17 +160,28 @@ export function UploadFlow({ kind, userName, scanFn, createFn }: UploadFlowProps
           isSaving={selected.status === "saving"}
         />
       );
+      return active.length === 1 ? (
+        <div className="space-y-3">
+          {addMore}
+          {form}
+        </div>
+      ) : (
+        form
+      );
     }
 
     // 2. A single file being scanned: keep the full scanning animation
     if (active.length === 1 && (active[0].status === "scanning" || active[0].status === "queued")) {
       return (
-        <ScanningState
-          kind={kind}
-          previewUrl={active[0].previewUrl}
-          isPdf={active[0].isPdf}
-          fileName={active[0].file.name}
-        />
+        <div className="space-y-3">
+          {addMore}
+          <ScanningState
+            kind={kind}
+            previewUrl={active[0].previewUrl}
+            isPdf={active[0].isPdf}
+            fileName={active[0].file.name}
+          />
+        </div>
       );
     }
 

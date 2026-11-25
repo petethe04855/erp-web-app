@@ -126,7 +126,7 @@ export function ImageDropzone({
       />
 
       {/* Main Big Camera Trigger Button */}
-      <button
+      {/* <button
         type="button"
         disabled={disabled}
         onClick={() => cameraInputRef.current?.click()}
@@ -142,7 +142,7 @@ export function ImageDropzone({
           </div>
           <p className="text-xs text-neutral-400 mt-0.5">{copy.subtitle}</p>
         </div>
-      </button>
+      </button> */}
 
       {/* Drag & Drop / Gallery Picker Secondary Area */}
       <div
